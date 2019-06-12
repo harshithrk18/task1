@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+{#    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>#}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    <script>
+
+
+    function findNewPoint(x, y, angle, distance) {
+            var result = {};
+
+            result.x = Math.round(Math.cos(angle * Math.PI / 180) * distance + x);
+            result.y = Math.round(Math.sin(angle * Math.PI / 180) * distance + y);
+
+            return result;
+        }
+
+    $(document).ready(function () {
+        $.ajax({
+            url: 'all_nodes',
+            type: 'get',
+            dataType: "text",
+            context: document.body,
+            success: function (json_data) {
+                var data = JSON.parse(json_data);
+                var all_nodes = '';
+                node_num = {};
+                for (var i = 0; i< data.length; i++){
+                    var p_node = Object.values(data[i])[1].split('-')[0];
+                    var c_node = Object.values(data[i])[1].split('-')[1];
+                    if (p_node in node_num){
+                        node_num[p_node].push(c_node)
+                    }
+                    else {
+                        node_num[p_node] = [c_node];
+                    }
+
+                    if (i==0){
+                        all_nodes += '<div style="top:10px;left:10px;position:absolute;border:2px solid black;height:40px;width:50px;">' + Object.values(data[i])[1] ;
+                        all_nodes += '<input id="submit" name="'+ Object.values(data[i])[0] + '" type="checkbox" aria-label="Checkbox for following text input">' + '</div>'
+
+                    }
+                    else{
+
+                        all_nodes += '<div>' + Object.values(data[i])[1] + '<input id="submit" name="'+ Object.values(data[i])[0] + '" type="checkbox" aria-label="Checkbox for following text input">' + '</div>';
+                    }
+
+
+                }
+                var x = 10;
+                var nodes = '';
+
+                for (var j = 0; j< Object.values(node_num).length; j++){
+
+                    var angle = 15;
+                    var num_of_c = Object.values(node_num)[j];
+                    for (var k = 0; k<num_of_c.length; k++)
+                    {
+                        var newPoint = findNewPoint(x, 10, angle, 200);
+                        {#console.log(newPoint);#}
+                        nodes+= '<div style="top:' + newPoint.y + 'px;left:'+newPoint.x +'px;height:20px;width:20px;position:absolute;border:2px solid black">';
+                        nodes+=  num_of_c[k]+ '</div>';
+                        angle += 15;
+                    }
+                    document.getElementById('nodes').innerHTML = nodes;
+                    x +=200;
+
+                }
+                $('#all_nodes').html(all_nodes);
+                console.log(node_num)
+            }
+            });
+
+        $(document).on('click','#submit',function () {
+            var parent_node = {parent_node:$(this).attr('name')};
+            $.ajax({
+                url: '',
+                type:'post',
+                cache: false,
+                dataType: "text",
+                data: parent_node,
+
+                success: function (data) {
+                    var newnode = JSON.parse(data);
+                    var a = Object.values(newnode)[1];
+                    console.log(Object.values(a)[1]);
+                    var node = '<div>' + Object.values(a)[1] + '<input id="submit" name="'+ Object.values(a)[0] + '" type="checkbox" aria-label="Checkbox for following text input">' + '</div>';
+
+                    $('#newnode').append(node)
+                }
+            })
+        })
+    });
+
+
+    </script>
+    <style>
+
+    </style>
+</head>
+<body>
+
+    <div id="all_nodes"></div>
+    <div id="newnode"></div>
+    <div id="nodes"></div>
+
+
+</body>
+
+</html>
